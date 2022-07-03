@@ -3,9 +3,12 @@ compile:
 	@gcc *.c -o clox
 	@chmod +x ./clox
 	@echo "CLOX compiled successfully"
+	@echo
 
-run:
+run: compile
+	@echo Running CLOX...
 	@./clox
+	@echo
 
 clean:
 	@rm clox

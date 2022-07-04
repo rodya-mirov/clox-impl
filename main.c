@@ -7,15 +7,14 @@ int main(int argc, const char* argv[]) {
 
     initChunk(&chunk);
 
-    int constantIdx = addConstant(&chunk, 1.2);
-    writeChunk(&chunk, OP_CONSTANT);
-    writeChunk(&chunk, constantIdx);
+    writeConstant(&chunk, 1.2, 0);
+    writeConstant(&chunk, -12.1, 0);
 
-    int constantIdx2 = addConstant(&chunk, -12.1);
-    writeChunk(&chunk, OP_CONSTANT);
-    writeChunk(&chunk, constantIdx2);
+    for (int i = 0; i < 256; i++) {
+        writeConstant(&chunk, 135 + i, 0);
+    }
 
-    writeChunk(&chunk, OP_RETURN);
+    writeChunk(&chunk, OP_RETURN, 1);
     disassambleChunk(&chunk, "test chunk");
     freeChunk(&chunk);
 

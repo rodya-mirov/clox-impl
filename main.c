@@ -11,15 +11,20 @@ int main(int argc, const char* argv[]) {
     Chunk chunk;
 
     initChunk(&chunk);
+    // ((50 + (-1.2)) - 1.2) / 2 * 6.2
+    writeConstant(&chunk, 50, 0); // 50
+    writeConstant(&chunk, 1.2, 0); // 50, 1.2
+    writeChunk(&chunk, OP_NEGATE, 0); // 50, -1.2
+    writeChunk(&chunk, OP_ADD, 0); // 48.8
+    writeConstant(&chunk, 1.2, 0); // 48.8, 1.2
+    writeChunk(&chunk, OP_SUBTRACT, 0); // 46.6
+    writeConstant(&chunk, 2, 0); // 46.6, 2
+    writeChunk(&chunk, OP_DIVIDE, 0); // 23.3
+    writeConstant(&chunk, 6, 0); // 23.3, 6
+    writeChunk(&chunk, OP_MULTIPLY, 0); // 139.8
 
-    writeConstant(&chunk, 1.2, 0);
-    writeConstant(&chunk, -12.1, 0);
 
-    for (int i = 0; i < 256; i++) {
-        writeConstant(&chunk, 135 + i, 0);
-    }
-
-    writeChunk(&chunk, OP_RETURN, 1);
+    writeChunk(&chunk, OP_RETURN, 0);
     // disassambleChunk(&chunk, "test chunk");
     interpret(&vm, &chunk);
 

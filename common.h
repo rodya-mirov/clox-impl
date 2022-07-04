@@ -5,4 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// comment this out to disable trace logs
+#define DEBUG_TRACE_EXECUTION
+
 #endif

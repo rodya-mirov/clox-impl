@@ -2,6 +2,7 @@
 
 #include "debug.h"
 #include "value.h"
+#include "lines.h"
 
 static int simpleInstruction(const char* name, int offset) {
     printf("%s\n", name);
@@ -35,14 +36,29 @@ static int constantInstructionLong(const char* name, Chunk* chunk, int offset) {
     return offset+4;
 }
 
+static void printLineNumber(Chunk* chunk, int offset) {
+    // TODO: using getLine is fine for random access but this is really bad
+    // for iteration performance. Better to use a running counter or something.
+    if (offset == 0) {
+        int lineIdx = getLine(&chunk->lines, offset);
+        printf("%04d ",lineIdx);
+        return;
+    }
+
+    int thisLine = getLine(&chunk->lines, offset);
+    int lastLine = getLine(&chunk->lines, offset-1);
+
+    if (thisLine == lastLine) {
+        printf("   | ");
+    } else {
+        printf("%04d ", thisLine);
+    }
+}
+
 int disassembleInstruction(Chunk* chunk, int offset) {
     printf("%04d ", offset);
 
-    if (offset > 0 && chunk->lines[offset] == chunk->lines[offset-1]) {
-        printf("   | ");
-    } else {
-        printf("%04d ", chunk->lines[offset]);
-    }
+    printLineNumber(chunk, offset);
 
     uint8_t instruction = chunk->code[offset];
     switch (instruction) {

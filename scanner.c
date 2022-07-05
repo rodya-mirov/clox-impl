@@ -135,6 +135,62 @@ static Token number(Scanner* scanner) {
     return makeToken(scanner, TOKEN_NUMBER);
 }
 
+static bool isAlpha(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
+}
+
+static TokenType checkKeyword(Scanner* scanner, int start, int length, const char* rest, TokenType type) {
+    if (scanner->current - scanner->start == start+length && memcmp(scanner->start + start, rest, length) == 0) {
+        return type;
+    }
+
+    return TOKEN_IDENTIFIER;
+}
+
+static TokenType identifierType(Scanner* scanner) {
+    switch(scanner->start[0]) {
+        case 'a': return checkKeyword(scanner, 1, 2, "nd", TOKEN_AND);
+        case 'c': return checkKeyword(scanner, 1, 4, "lass", TOKEN_CLASS);
+        case 'e': return checkKeyword(scanner, 1, 3, "lse", TOKEN_ELSE);
+        case 'f': {
+            if (scanner->current - scanner->start > 1) {
+                switch (scanner->start[1]) {
+                    case 'a': return checkKeyword(scanner, 2, 3, "lse", TOKEN_FALSE);
+                    case 'o': return checkKeyword(scanner, 2, 1, "r", TOKEN_FOR);
+                    case 'u': return checkKeyword(scanner, 2, 1, "n", TOKEN_FUN);
+                }
+            }
+        }
+        case 'i': return checkKeyword(scanner, 1, 1, "f", TOKEN_IF);
+        case 'n': return checkKeyword(scanner, 1, 2, "il", TOKEN_NIL);
+        case 'o': return checkKeyword(scanner, 1, 1, "r", TOKEN_OR);
+        case 'p': return checkKeyword(scanner, 1, 4, "rint", TOKEN_PRINT);
+        case 'r': return checkKeyword(scanner, 1, 5, "eturn", TOKEN_RETURN);
+        case 's': return checkKeyword(scanner, 1, 4, "uper", TOKEN_SUPER);
+        case 't': {
+            if (scanner->current - scanner->start > 1) {
+                switch (scanner->start[1]) {
+                    case 'h': return checkKeyword(scanner, 2, 2, "is", TOKEN_THIS);
+                    case 'r': return checkKeyword(scanner, 2, 2, "ue", TOKEN_TRUE);
+                }
+            }
+        }
+        case 'v': return checkKeyword(scanner, 1, 2, "ar", TOKEN_VAR);
+        case 'w': return checkKeyword(scanner, 1, 4, "hile", TOKEN_WHILE);
+    }
+
+    return TOKEN_IDENTIFIER;
+}
+
+static Token identifier(Scanner* scanner) {
+    while (isAlpha(peek(scanner)) || isDigit(peek(scanner))) {
+        advance(scanner);
+    }
+
+    TokenType type = identifierType(scanner);
+    return makeToken(scanner, type);
+}
+
 Token scanToken(Scanner* scanner) {
     skipWhitespace(scanner);
 
@@ -159,6 +215,9 @@ Token scanToken(Scanner* scanner) {
 
     char c = advance(scanner);
 
+    if (isAlpha(c)) {
+        return identifier(scanner);
+    }
     if (isDigit(c)) {
         return number(scanner);
     }

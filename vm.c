@@ -118,7 +118,6 @@ InterpretResult interpret(VM* vm, const char* source) {
     return INTERPRET_OK;
 }
 
-// TODO: what about stack overflow?
 void push(VM* vm, Value value) {
     if (vm->stackTop >= vm->stack + STACK_MAX) {
         fprintf(stderr, "Stack overflow -- max %d", STACK_MAX);
@@ -128,7 +127,8 @@ void push(VM* vm, Value value) {
     vm->stackTop += 1;
 }
 
-// TODO: what about stack underflow?
+// TODO: what about stack underflow? shouldn't happen except in a compiler bug
+// so idk how much i care
 Value pop(VM* vm) {
     vm->stackTop -= 1;
     return *vm->stackTop;

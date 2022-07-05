@@ -1,6 +1,7 @@
 ((!!====<=<<>>=/*.;))
 < > << >= // skip the rest of this line
-
-
+12.32 < 41 // numbeers!
+12. 41 // this should be 12 dot 41 although let's hope there's no reason to ever write that
+"hello !!!" < >! // no escapes i guess
 // comments wokr, i guess
 < ((())

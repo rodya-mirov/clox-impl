@@ -95,6 +95,46 @@ static void skipWhitespace(Scanner* scanner) {
     }
 }
 
+// consumes and returns a string lexeme
+// PRE: the starting " has been consumed
+static Token string(Scanner* scanner) {
+    // TODO: what about escaped quotes?
+    while (peek(scanner) != '"' && !isAtEnd(scanner)) {
+        if (peek(scanner) == '\n') {
+            scanner->line += 1;
+        }
+        advance(scanner);
+    }
+
+    if (isAtEnd(scanner)) {
+        return errorToken(scanner, "Unterminated string.");
+    }
+
+    advance(scanner);
+    return makeToken(scanner, TOKEN_STRING);
+}
+
+static bool isDigit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+static Token number(Scanner* scanner) {
+    while (isDigit(peek(scanner))) {
+        advance(scanner);
+    }
+
+    if (peek(scanner) == '.' && isDigit(peekNext(scanner))) {
+        advance(scanner); // consume the dot
+
+        // then consume the decimal parts
+        while (isDigit(peek(scanner))) {
+            advance(scanner);
+        }
+    }
+
+    return makeToken(scanner, TOKEN_NUMBER);
+}
+
 Token scanToken(Scanner* scanner) {
     skipWhitespace(scanner);
 
@@ -119,6 +159,10 @@ Token scanToken(Scanner* scanner) {
 
     char c = advance(scanner);
 
+    if (isDigit(c)) {
+        return number(scanner);
+    }
+
     switch(c) {
         ONE_CHAR_TOKEN('(', TOKEN_LEFT_PAREN);
         ONE_CHAR_TOKEN(')', TOKEN_RIGHT_PAREN);
@@ -137,6 +181,7 @@ Token scanToken(Scanner* scanner) {
         ONE_CHAR_FB_TOKEN('<', '=', TOKEN_LESS_EQUAL, TOKEN_LESS);
         ONE_CHAR_FB_TOKEN('>', '=', TOKEN_GREATER_EQUAL, TOKEN_GREATER);
     
+        case '"': return string(scanner);
     }
 
     // lexer errors are great

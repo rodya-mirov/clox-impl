@@ -3,6 +3,7 @@
 #include "common.h"
 #include "vm.h"
 #include "debug.h"
+#include "compiler.h"
 
 static void resetStack(VM* vm) {
     vm->stackTop = vm->stack;
@@ -112,16 +113,17 @@ static InterpretResult run(VM* vm) {
     #undef UNARY_OP
 }
 
-InterpretResult interpret(VM* vm, Chunk* chunk) {
-    vm->chunk = chunk;
-    // yes, it's setting it to an actual pointer
-    vm->ip = vm->chunk->code;
-
-    return run(vm);
+InterpretResult interpret(VM* vm, const char* source) {
+    compile(source);
+    return INTERPRET_OK;
 }
 
 // TODO: what about stack overflow?
 void push(VM* vm, Value value) {
+    if (vm->stackTop >= vm->stack + STACK_MAX) {
+        fprintf(stderr, "Stack overflow -- max %d", STACK_MAX);
+        exit(1);
+    }
     *vm->stackTop = value;
     vm->stackTop += 1;
 }

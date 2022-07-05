@@ -28,11 +28,10 @@ typedef enum {
 void initVM(VM* vm);
 void freeVM(VM* vm);
 
+InterpretResult interpret(VM* vm, const char* source);
+
 // TODO: what about error handling? stack over/underflow?
 void push(VM* vm, Value value);
 Value pop(VM* vm);
-
-// rigs up the VM to start interpreting the given chunk, then executes it until a return
-InterpretResult interpret(VM* vm, Chunk* chunk);
 
 #endif

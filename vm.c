@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "common.h"
@@ -8,6 +9,12 @@
 static void resetStack(VM* vm) {
     vm->stackTop = vm->stack;
 }
+
+static Value peek(VM* vm, int distance);
+
+// takes vm, format string, and format args
+// prints the formatted args, then some debug information about where the error occurred
+static void runtimeError(VM* vm, const char* format, ...);
 
 void initVM(VM* vm) {
     resetStack(vm);
@@ -46,17 +53,27 @@ static Value readConstantLong(VM* vm) {
 
 static InterpretResult run(VM* vm) {
 
-    #define UNARY_OP(op) \
+    #define UNARY_OP(valueType, op) \
         do { \
+            if (!IS_NUMBER(peek(vm, 0))) { \
+                runtimeError(vm, "Operand must be a number."); \
+                return INTERPRET_RUNTIME_ERROR; \
+            } \
             Value* aPtr = vm->stackTop - 1; \
-            *aPtr = op (*aPtr); \
+            double aNum = AS_NUMBER(*aPtr); \
+            *aPtr = valueType(op aNum); \
         } while(false)
 
-    #define BINARY_OP(op) \
+    #define BINARY_OP(valueType, op) \
         do { \
-            double b = pop(vm); \
+            if (!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) { \
+                runtimeError(vm, "Operands must be numbers."); \
+                return INTERPRET_RUNTIME_ERROR; \
+            } \
+            double b = AS_NUMBER(pop(vm)); \
             Value* aPtr = vm->stackTop - 1; \
-            *aPtr = (*aPtr) op (b); \
+            double aVal = AS_NUMBER(*aPtr); \
+            *aPtr = valueType((aVal) op (b)); \
         } while(false)
 
     for(;;) {
@@ -96,12 +113,12 @@ static InterpretResult run(VM* vm) {
                 return INTERPRET_OK;
             }
 
-            case OP_NEGATE:         UNARY_OP(-);  break;
+            case OP_NEGATE:         UNARY_OP( NUMBER_VAL, -);  break;
 
-            case OP_ADD:            BINARY_OP(+); break;
-            case OP_SUBTRACT:       BINARY_OP(-); break;
-            case OP_MULTIPLY:       BINARY_OP(*); break;
-            case OP_DIVIDE:         BINARY_OP(/); break;
+            case OP_ADD:            BINARY_OP(NUMBER_VAL, +); break;
+            case OP_SUBTRACT:       BINARY_OP(NUMBER_VAL, -); break;
+            case OP_MULTIPLY:       BINARY_OP(NUMBER_VAL, *); break;
+            case OP_DIVIDE:         BINARY_OP(NUMBER_VAL, /); break;
 
             default:
                 printf("Unknown OP_CODE %0d; aborting run\n", instruction);
@@ -146,4 +163,22 @@ void push(VM* vm, Value value) {
 Value pop(VM* vm) {
     vm->stackTop -= 1;
     return *vm->stackTop;
+}
+
+static Value peek(VM* vm, int distance) {
+    return vm->stackTop[-1 - distance];
+}
+
+static void runtimeError(VM* vm, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    size_t instruction = vm->ip - vm->chunk->code - 1;
+    LineRecordArray* lines = &vm->chunk->lines;
+    int line = getLine(lines, instruction);
+    fprintf(stderr, "[line %d] in script\n", line);
+    resetStack(vm);
 }

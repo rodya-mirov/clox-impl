@@ -225,7 +225,7 @@ static void emitConstant(int line, Value value) {
 
 static void number(Scanner* scanner, Parser* parser) {
     double value = strtod(parser->previous.start, NULL);
-    emitConstant(parser->previous.line, value);
+    emitConstant(parser->previous.line, NUMBER_VAL(value));
 }
 
 static void unary(Scanner* scanner, Parser* parser) {

@@ -61,27 +61,6 @@ static bool isFalsey(Value v) {
     return false;
 }
 
-static bool valuesEqual(Value a, Value b) {
-    if (a.type != b.type) {
-        return false;
-    }
-
-    switch (a.type) {
-        case VAL_BOOL:
-            return AS_BOOL(a) == AS_BOOL(b);
-        
-        case VAL_NIL:
-            return true;
-
-        case VAL_NUMBER:
-            return AS_NUMBER(a) == AS_NUMBER(b);
-        
-        default:
-            // unreachable
-            return false;
-    }
-}
-
 static InterpretResult run(VM* vm) {
 
     #define UNARY_OP(valueType, op) \

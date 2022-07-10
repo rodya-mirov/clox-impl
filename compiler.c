@@ -35,6 +35,7 @@ typedef enum {
 typedef void (*ParseFn)(Scanner*, Parser*);
 
 static void number(Scanner* scanner, Parser* parser);
+static void string(Scanner* scanner, Parser* parser);
 static void unary(Scanner* scanner, Parser* parser);
 static void grouping(Scanner* scanner, Parser* parser);
 static void binary(Scanner* scanner, Parser* parser);
@@ -76,7 +77,7 @@ ParseRule rules[] = {
     [TOKEN_LESS]            = { NULL,       binary, PREC_EQUALITY },
     [TOKEN_LESS_EQUAL]      = { NULL,       binary, PREC_EQUALITY },
     [TOKEN_IDENTIFIER]      = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_STRING]          = { NULL,       NULL,   PREC_NONE   },
+    [TOKEN_STRING]          = { string,     NULL,   PREC_NONE   },
     [TOKEN_NUMBER]          = { number,     NULL,   PREC_NONE   },
     [TOKEN_AND]             = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_CLASS]           = { NULL,       NULL,   PREC_NONE   },
@@ -228,6 +229,15 @@ static void emitConstant(int line, Value value) {
 static void number(Scanner* scanner, Parser* parser) {
     double value = strtod(parser->previous.start, NULL);
     emitConstant(parser->previous.line, NUMBER_VAL(value));
+}
+
+// consume a string literal, given it's in the parser->previous token
+static void string(Scanner* scanner, Parser* parser) {
+    // note that the +1 and -2 are just trimming the quotation marks around the
+    // string literal
+    ObjString* str = copyString(parser->previous.start + 1, parser->previous.length - 2);
+    Value value = OBJ_VAL(str);
+    emitConstant(parser->previous.line, value);
 }
 
 static void unary(Scanner* scanner, Parser* parser) {

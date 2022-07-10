@@ -38,6 +38,7 @@ static void number(Scanner* scanner, Parser* parser);
 static void unary(Scanner* scanner, Parser* parser);
 static void grouping(Scanner* scanner, Parser* parser);
 static void binary(Scanner* scanner, Parser* parser);
+static void literal(Scanner* scanner, Parser* parser);
 
 // each token type has an associated parse rule
 typedef struct {
@@ -79,17 +80,17 @@ ParseRule rules[] = {
     [TOKEN_AND]             = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_CLASS]           = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_ELSE]            = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_FALSE]           = { NULL,       NULL,   PREC_NONE   },
+    [TOKEN_FALSE]           = { literal,    NULL,   PREC_NONE   },
     [TOKEN_FOR]             = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_FUN]             = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_IF]              = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_NIL]             = { NULL,       NULL,   PREC_NONE   },
+    [TOKEN_NIL]             = { literal,    NULL,   PREC_NONE   },
     [TOKEN_OR]              = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_PRINT]           = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_RETURN]          = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_SUPER]           = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_THIS]            = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_TRUE]            = { NULL,       NULL,   PREC_NONE   },
+    [TOKEN_TRUE]            = { literal,    NULL,   PREC_NONE   },
     [TOKEN_VAR]             = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_WHILE]           = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_ERROR]           = { NULL,       NULL,   PREC_NONE   },
@@ -241,6 +242,18 @@ static void unary(Scanner* scanner, Parser* parser) {
         default:
             // unreachable
             // TODO surely this is not the best self-defense we can manage???
+            return;
+    }
+}
+
+static void literal(Scanner* scanner, Parser* parser) {
+    #define EMIT_BYTE(b)    { int lineNumber = parser->previous.line; emitByte(lineNumber, b); break; }
+    switch (parser->previous.type) {
+        case TOKEN_FALSE:   EMIT_BYTE(OP_FALSE)
+        case TOKEN_TRUE:    EMIT_BYTE(OP_TRUE)
+        case TOKEN_NIL:     EMIT_BYTE(OP_NIL)
+        default:
+            // unreachable?
             return;
     }
 }

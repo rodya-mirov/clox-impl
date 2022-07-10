@@ -113,6 +113,10 @@ static InterpretResult run(VM* vm) {
                 return INTERPRET_OK;
             }
 
+            case OP_NIL:            push(vm, NIL_VAL);          break;
+            case OP_TRUE:           push(vm, BOOL_VAL(true));   break;
+            case OP_FALSE:          push(vm, BOOL_VAL(false));  break;
+
             case OP_NEGATE:         UNARY_OP( NUMBER_VAL, -);  break;
 
             case OP_ADD:            BINARY_OP(NUMBER_VAL, +); break;

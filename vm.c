@@ -51,6 +51,16 @@ static Value readConstantLong(VM* vm) {
     return vm->chunk->constants.values[constantIdx];
 }
 
+static bool isFalsey(Value v) {
+    if (IS_NIL(v)) {
+        return true;
+    }
+    if (IS_BOOL(v) && !AS_BOOL(v)) {
+        return true;
+    }
+    return false;
+}
+
 static InterpretResult run(VM* vm) {
 
     #define UNARY_OP(valueType, op) \
@@ -61,7 +71,7 @@ static InterpretResult run(VM* vm) {
             } \
             Value* aPtr = vm->stackTop - 1; \
             double aNum = AS_NUMBER(*aPtr); \
-            *aPtr = valueType(op aNum); \
+            *aPtr = valueType(op (aNum)); \
         } while(false)
 
     #define BINARY_OP(valueType, op) \
@@ -117,7 +127,12 @@ static InterpretResult run(VM* vm) {
             case OP_TRUE:           push(vm, BOOL_VAL(true));   break;
             case OP_FALSE:          push(vm, BOOL_VAL(false));  break;
 
-            case OP_NEGATE:         UNARY_OP( NUMBER_VAL, -);  break;
+            case OP_NEGATE:         UNARY_OP(NUMBER_VAL, -);  break;
+            case OP_NOT: {
+                Value* aPtr = vm->stackTop - 1;
+                *aPtr = BOOL_VAL(isFalsey(*aPtr));
+                break;
+            }
 
             case OP_ADD:            BINARY_OP(NUMBER_VAL, +); break;
             case OP_SUBTRACT:       BINARY_OP(NUMBER_VAL, -); break;

@@ -60,6 +60,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 
     printLineNumber(chunk, offset);
 
+    #define SIMPLE(op)      case op: return simpleInstruction(#op, offset);
+
     uint8_t instruction = chunk->code[offset];
     switch (instruction) {
         case OP_CONSTANT:
@@ -68,35 +70,21 @@ int disassembleInstruction(Chunk* chunk, int offset) {
         case OP_CONSTANT_LONG:
             return constantInstructionLong("OP_CONSTANT_LONG", chunk, offset);
 
-        case OP_NIL:
-            return simpleInstruction("OP_NIL", offset);
-
-        case OP_TRUE:
-            return simpleInstruction("OP_TRUE", offset);
-
-        case OP_FALSE:
-            return simpleInstruction("OP_FALSE", offset);
-
-        case OP_RETURN:
-            return simpleInstruction("OP_RETURN", offset);
-
-        case OP_NEGATE:
-            return simpleInstruction("OP_NEGATE", offset);       
-
-        case OP_ADD:
-            return simpleInstruction("OP_ADD", offset);      
-
-        case OP_SUBTRACT:
-            return simpleInstruction("OP_SUBTRACT", offset);      
-
-        case OP_MULTIPLY:
-            return simpleInstruction("OP_MULTIPLY", offset);      
-
-        case OP_DIVIDE:
-            return simpleInstruction("OP_DIVIDE", offset);        
+        SIMPLE(OP_NIL)
+        SIMPLE(OP_TRUE)
+        SIMPLE(OP_FALSE)
+        SIMPLE(OP_RETURN)
+        SIMPLE(OP_NEGATE)
+        SIMPLE(OP_NOT)
+        SIMPLE(OP_ADD)
+        SIMPLE(OP_SUBTRACT)
+        SIMPLE(OP_MULTIPLY)
+        SIMPLE(OP_DIVIDE)  
         
         default:
             printf("Unknown opcode %d\n", instruction);
             return offset + 1;
     }
+
+    #undef SIMPLE
 }

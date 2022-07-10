@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+// comment this out to disable chunk dumping after a parse
+#define DEBUG_PRINT_CODE
+
 // comment this out to disable trace logs
 #define DEBUG_TRACE_EXECUTION
 

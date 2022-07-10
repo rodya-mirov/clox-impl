@@ -80,6 +80,12 @@ int disassembleInstruction(Chunk* chunk, int offset) {
         SIMPLE(OP_SUBTRACT)
         SIMPLE(OP_MULTIPLY)
         SIMPLE(OP_DIVIDE)  
+        SIMPLE(OP_EQUAL)  
+        SIMPLE(OP_NOT_EQUAL)  
+        SIMPLE(OP_LESS)  
+        SIMPLE(OP_LESS_EQUAL)  
+        SIMPLE(OP_GREATER)  
+        SIMPLE(OP_GREATER_EQUAL)  
         
         default:
             printf("Unknown opcode %d\n", instruction);

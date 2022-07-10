@@ -68,13 +68,13 @@ ParseRule rules[] = {
     [TOKEN_STAR]            = { NULL,       binary, PREC_FACTOR },
     // TODO this feels weird, the ! has incredibly low precedence
     [TOKEN_BANG]            = { unary,      NULL,   PREC_NONE   },
-    [TOKEN_BANG_EQUAL]      = { NULL,       NULL,   PREC_NONE   },
+    [TOKEN_BANG_EQUAL]      = { NULL,       binary, PREC_EQUALITY },
     [TOKEN_EQUAL]           = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_EQUAL_EQUAL]     = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_GREATER]         = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_GREATER_EQUAL]   = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_LESS]            = { NULL,       NULL,   PREC_NONE   },
-    [TOKEN_LESS_EQUAL]      = { NULL,       NULL,   PREC_NONE   },
+    [TOKEN_EQUAL_EQUAL]     = { NULL,       binary, PREC_EQUALITY },
+    [TOKEN_GREATER]         = { NULL,       binary, PREC_EQUALITY },
+    [TOKEN_GREATER_EQUAL]   = { NULL,       binary, PREC_EQUALITY },
+    [TOKEN_LESS]            = { NULL,       binary, PREC_EQUALITY },
+    [TOKEN_LESS_EQUAL]      = { NULL,       binary, PREC_EQUALITY },
     [TOKEN_IDENTIFIER]      = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_STRING]          = { NULL,       NULL,   PREC_NONE   },
     [TOKEN_NUMBER]          = { number,     NULL,   PREC_NONE   },
@@ -281,10 +281,17 @@ static void binary(Scanner* scanner, Parser* parser) {
     #define EMIT_OP(TOK, TOK_OP) case TOK: { emitByte(lineNumber, TOK_OP); break; }
 
     switch (operatorType) {
-        EMIT_OP(TOKEN_PLUS, OP_ADD)
+        EMIT_OP(TOKEN_PLUS,  OP_ADD)
         EMIT_OP(TOKEN_MINUS, OP_SUBTRACT)
-        EMIT_OP(TOKEN_STAR, OP_MULTIPLY)
+        EMIT_OP(TOKEN_STAR,  OP_MULTIPLY)
         EMIT_OP(TOKEN_SLASH, OP_DIVIDE)
+
+        EMIT_OP(TOKEN_BANG_EQUAL,    OP_NOT_EQUAL)
+        EMIT_OP(TOKEN_EQUAL_EQUAL,   OP_EQUAL)
+        EMIT_OP(TOKEN_GREATER,       OP_GREATER)
+        EMIT_OP(TOKEN_GREATER_EQUAL, OP_GREATER_EQUAL)
+        EMIT_OP(TOKEN_LESS,          OP_LESS)
+        EMIT_OP(TOKEN_LESS_EQUAL,    OP_LESS_EQUAL)
 
         default: {
             // unreachable?

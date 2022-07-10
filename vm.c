@@ -61,6 +61,27 @@ static bool isFalsey(Value v) {
     return false;
 }
 
+static bool valuesEqual(Value a, Value b) {
+    if (a.type != b.type) {
+        return false;
+    }
+
+    switch (a.type) {
+        case VAL_BOOL:
+            return AS_BOOL(a) == AS_BOOL(b);
+        
+        case VAL_NIL:
+            return true;
+
+        case VAL_NUMBER:
+            return AS_NUMBER(a) == AS_NUMBER(b);
+        
+        default:
+            // unreachable
+            return false;
+    }
+}
+
 static InterpretResult run(VM* vm) {
 
     #define UNARY_OP(valueType, op) \
@@ -126,6 +147,25 @@ static InterpretResult run(VM* vm) {
             case OP_NIL:            push(vm, NIL_VAL);          break;
             case OP_TRUE:           push(vm, BOOL_VAL(true));   break;
             case OP_FALSE:          push(vm, BOOL_VAL(false));  break;
+
+            case OP_EQUAL: {
+                Value b = pop(vm);
+                Value* aPtr = vm->stackTop - 1;
+                *aPtr = BOOL_VAL(valuesEqual(*aPtr, b));
+                break;
+            }
+
+            case OP_NOT_EQUAL: {
+                Value b = pop(vm);
+                Value* aPtr = vm->stackTop - 1;
+                *aPtr = BOOL_VAL(!valuesEqual(*aPtr, b));
+                break;
+            }
+
+            case OP_GREATER:        BINARY_OP(BOOL_VAL, >); break;
+            case OP_GREATER_EQUAL:  BINARY_OP(BOOL_VAL, >=); break;
+            case OP_LESS:           BINARY_OP(BOOL_VAL, <); break;
+            case OP_LESS_EQUAL:     BINARY_OP(BOOL_VAL, <=); break;
 
             case OP_NEGATE:         UNARY_OP(NUMBER_VAL, -);  break;
             case OP_NOT: {

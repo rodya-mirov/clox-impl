@@ -1,10 +1,12 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "common.h"
 #include "vm.h"
 #include "debug.h"
 #include "compiler.h"
+#include "memory.h"
 
 static void resetStack(VM* vm) {
     vm->stackTop = vm->stack;
@@ -61,8 +63,24 @@ static bool isFalsey(Value v) {
     return false;
 }
 
+static void concatenate(VM* vm) {
+    ObjString* b = AS_STRING(pop(vm));
+    ObjString* a = AS_STRING(pop(vm));
+
+    int length = a->length + b->length;
+    char* chars = ALLOCATE(char, length+1);
+    memcpy(chars, a->chars, a->length);
+    memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
+
+    ObjString* result = takeString(chars, length);
+    push(vm, OBJ_VAL(result));
+}
+
 static InterpretResult run(VM* vm) {
 
+    // an efficient helper function for taking a numerical argument and
+    // applying a unary function to it
     #define UNARY_OP(valueType, op) \
         do { \
             if (!IS_NUMBER(peek(vm, 0))) { \
@@ -74,6 +92,8 @@ static InterpretResult run(VM* vm) {
             *aPtr = valueType(op (aNum)); \
         } while(false)
 
+    // an efficient helper function for taking two numerical arguments
+    // and applying a binary function to them
     #define BINARY_OP(valueType, op) \
         do { \
             if (!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) { \
@@ -153,7 +173,20 @@ static InterpretResult run(VM* vm) {
                 break;
             }
 
-            case OP_ADD:            BINARY_OP(NUMBER_VAL, +); break;
+            case OP_ADD: {
+                Value b = peek(vm, 0);
+                Value a = peek(vm, 1);
+
+                if (IS_STRING(a) && IS_STRING(b)) {
+                    concatenate(vm);
+                } else if (IS_NUMBER(a) && IS_NUMBER(b)) {
+                    BINARY_OP(NUMBER_VAL, +);
+                } else {
+                    runtimeError(vm, "Operands must be two strings or two numbers");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
             case OP_SUBTRACT:       BINARY_OP(NUMBER_VAL, -); break;
             case OP_MULTIPLY:       BINARY_OP(NUMBER_VAL, *); break;
             case OP_DIVIDE:         BINARY_OP(NUMBER_VAL, /); break;
